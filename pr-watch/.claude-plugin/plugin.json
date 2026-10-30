@@ -1,0 +1,1 @@
+{ "name": "pr-watch", "version": "0.1.0", "description": "Side panel of open PRs with CI, Codex and merge state", "types": "./types/index.d.ts" }

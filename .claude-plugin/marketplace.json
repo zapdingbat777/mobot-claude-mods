@@ -1,11 +1,18 @@
 {
   "name": "mobot-claude-mods",
-  "owner": { "name": "zapdingbat777" },
+  "owner": {
+    "name": "zapdingbat777"
+  },
   "plugins": [
     {
       "name": "mobot",
       "source": "./mobot",
       "description": "/m <text> saves straight into MoBotBrain"
+    },
+    {
+      "name": "pr-watch",
+      "source": "./pr-watch",
+      "description": "Open PRs with CI, Codex and merge state: a side panel in local sessions, /prs text in cloud ones"
     }
   ]
 }
