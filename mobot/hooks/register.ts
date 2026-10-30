@@ -1,6 +1,8 @@
 import type { Register } from 'claude-code'
 
-const SERVER = 'MoBot_Brain'
+// The connector's name differs by where the session runs: cloud sessions see
+// `MoBot_Brain`, local ones may see the claude.ai connector by its full name.
+const SERVERS = ['MoBot_Brain', 'claude.ai MoBot Brain', 'MoBot Brain']
 const KINDS = [
   'idea', 'thesis', 'decision', 'goal', 'commitment', 'person',
   'reference', 'document', 'note', 'fact', 'opinion',
@@ -45,17 +47,29 @@ export const register: Register = on => {
     if (!text) {
       return { text: `Usage: /m [kind:] text — kinds: ${KINDS.join(', ')}` }
     }
-    try {
-      const res = await $.mcp.call(SERVER, 'brain_capture', kind ? { text, kind } : { text })
-      const said = res.content
-        .map(b => (b.type === 'text' ? b.text : ''))
-        .filter(Boolean)
-        .join('\n')
-      if (res.isError) return { text: `MoBotBrain refused: ${message(said) || 'unknown error'}` }
-      $.ui.toast(`Saved to MoBotBrain${kind ? ` as ${kind}` : ''}`)
-      return { text: message(said) || `Saved${kind ? ` as ${kind}` : ' as note'}.` }
-    } catch (err) {
-      return { text: `Couldn't reach MoBotBrain: ${err instanceof Error ? err.message : String(err)}` }
+    const args = kind ? { text, kind } : { text }
+    let res: Awaited<ReturnType<typeof $.mcp.call>> | undefined
+    let lastErr: unknown
+    // A throw means the call didn't get a result (wrong name, not connected),
+    // so move on to the next name.
+    for (const server of SERVERS) {
+      try {
+        res = await $.mcp.call(server, 'brain_capture', args)
+        break
+      } catch (err) {
+        lastErr = err
+      }
     }
+    if (!res) {
+      const why = lastErr instanceof Error ? lastErr.message : String(lastErr)
+      return { text: `Couldn't reach MoBotBrain. Is the MoBot Brain connector connected in this session? (${why})` }
+    }
+    const said = res.content
+      .map(b => (b.type === 'text' ? b.text : ''))
+      .filter(Boolean)
+      .join('\n')
+    if (res.isError) return { text: `MoBotBrain refused: ${message(said) || 'unknown error'}` }
+    $.ui.toast(`Saved to MoBotBrain${kind ? ` as ${kind}` : ''}`)
+    return { text: message(said) || `Saved${kind ? ` as ${kind}` : ' as note'}.` }
   })
 }
