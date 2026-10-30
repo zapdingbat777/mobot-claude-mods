@@ -1,0 +1,11 @@
+{
+  "name": "mobot-claude-mods",
+  "owner": { "name": "zapdingbat777" },
+  "plugins": [
+    {
+      "name": "mobot",
+      "source": "./mobot",
+      "description": "/m <text> saves straight into MoBotBrain"
+    }
+  ]
+}
